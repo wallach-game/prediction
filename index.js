@@ -34,10 +34,11 @@ function predictStart(req, res) {
     years.forEach(year => console.log(calculateTrendLine(year.sales)));
     years.forEach(year => convertSales(year));
     years.forEach(year => calculateGraphDirection(year));
-    years.forEach(year => calculateChangePoints(year));
-    years.forEach(year => calculateChangeSlopes(year));
-
-    console.log(years[0]);
+    years.forEach(year => calculateUseky(year));
+    // years.forEach(year => calculateChangePoints(year));
+    // years.forEach(year => calculateChangeSlopes(year));
+    console.log( years[1].useky[5]);
+    //..
     //calculateTrendLine(inputData);
 
     res.send(emptyResponse);
@@ -83,10 +84,18 @@ function createYearsArray(inputData) {
 function yearObjFactory() {
     let year = {
         sales: [],
-        changePoints: [],
+        useky: [],
         year: 0
     };
     return year;
+}
+
+function usekFactory()
+{
+    let usek = {
+        sales: []
+    }
+    return usek;
 }
 
 function salesFactory(sale) {
@@ -94,7 +103,6 @@ function salesFactory(sale) {
         timestamp: sale.timestamp,
         value: sale.value,
         dir: "",
-        changeSlope: 0
     }
     return nSale;
 }
@@ -137,21 +145,32 @@ function calculateGraphDirection(year) {
     }
 }
 
-function calculateChangePoints(year) {
+function calculateUseky(year) {
+    let usek = usekFactory();
     for (let i = 1; i < year.sales.length; i++) {
-        const element = year.sales[i];
-        if (element.dir != year.sales[i - 1].dir) {
-            year.changePoints.push(element);
+        if (year.sales[i].dir != year.sales[i - 1].dir) {
+            if(usek.sales.length == 0)
+            {
+                usek.sales.push(year.sales[i]);
+            }
+            year.useky.push(usek);
+            usek = usekFactory();
+        }
+        else
+        {
+            usek.sales.push(year.sales[i]);
         }
     }
+    year.useky.push(usek);
+    return year;
 }
 
-function calculateChangeSlopes(year) {
-    for (let i = 1; i < year.changePoints.length; i++) {
-        let changePoints = [year.changePoints[i - 1], year.changePoints[i]];
-        year.changePoints[i].changeSlope = calculateTrendLine(changePoints);
-        if ((year.changePoints[i].dir == "^" && year.changePoints[i].changeSlope < 0) || (year.changePoints[i].dir == "V" && year.changePoints[i].changeSlope > 0)) {
-            year.changePoints[i].changeSlope = -1 * year.changePoints[i].changeSlope;
-        }
-    }
-}
+// function calculateChangeSlopes(year) {
+//     for (let i = 1; i < year.changePoints.length; i++) {
+//         let changePoints = [year.changePoints[i - 1], year.changePoints[i]];
+//         year.changePoints[i].changeSlope = calculateTrendLine(changePoints);
+//         if ((year.changePoints[i].dir == "^" && year.changePoints[i].changeSlope < 0) || (year.changePoints[i].dir == "V" && year.changePoints[i].changeSlope > 0)) {
+//             year.changePoints[i].changeSlope = -1 * year.changePoints[i].changeSlope;
+//         }
+//     }
+// }
